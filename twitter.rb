@@ -34,7 +34,7 @@ end.parse!
 
 # конфигурируем твитер клиент согласно документации https://github.com/sferik/twitter/blob/master/examples/Configuration.md
 client = Twitter::REST::Client.new do |config|
-  # ВНИМАНИЕ! Эти параметры уникальны для каждого проиложения, вы должны
+  # ВНИМАНИЕ! Эти параметры уникальны для каждого приложения, вы должны
   # зарегистрировать в своем аккаунте новое приложение на https://apps.twitter.com
   # и взять со страницы этого приложения данные настройки!
   config.consumer_key = '___'
