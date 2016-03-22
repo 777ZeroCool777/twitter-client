@@ -18,4 +18,4 @@
 
 `ruby twitter.rb --timeline USER_NAME` - показать последние твиты
 
-`ruby twitter.rb --image` постить картинку
+`ruby twitter.rb --image` - постить картинку
