@@ -11,10 +11,11 @@ if (Gem.win_platform?)
 end
 # XXX/
 
+# подключаю библиотеку
 require 'twitter'
 require 'optparse'
 
-
+# Все опции будут записаны сюда
 options = {}
 
 # задаем нужные нам опции
@@ -31,19 +32,31 @@ OptionParser.new do |opt|
   opt.on('--image', 'постит картинку') { |o| options[:image] = o } #
 end.parse!
 
-
+# конфигурируем твитер клиент согласно документации https://github.com/sferik/twitter/blob/master/examples/Configuration.md
 client = Twitter::REST::Client.new do |config|
-  config.consumer_key = 'r3ZTil2yHx2b0NubmIuddLkTA'
-  config.consumer_secret = 'CVEa8Y66kwz8ciaCOZJrc75uWI8Pu01BlmsMuzEu9Gz8z3fs3t'
-  config.access_token = '710126128200077312-LLRcsziQUPVFYyHXgXpoxSOBeCWodpx'
-  config.access_token_secret = 'AHznV6H0jmSo9e6icYuELjMlmOax129otVwO2ptDJ1mQL'
+  # ВНИМАНИЕ! Эти параметры уникальны для каждого проиложения, вы должны
+  # зарегистрировать в своем аккаунте новое приложение на https://apps.twitter.com
+  # и взять со страницы этого приложения данные настройки!
+  config.consumer_key = '___'
+  config.consumer_secret = '_______'
+  config.access_token = '______'
+  config.access_token_secret = '______'
 end
 
+# Постим новый твит https://github.com/sferik/twitter/blob/master/examples/Update.md
+begin
+  # постит картинку, если переданный аргумент --image
+  if options.key?(:image)
+    client.update_with_media("I'm tweeting with @gem!", File.new("")) # File.new("") <= здесь указан путь к картинке
+  end
 
-if options.key?(:image)
-  client.update_with_media("I'm tweeting with @gem!", File.new("C:/rubytut2/lesson14/twitter/programmist.png"))
+  # если картинка не найдена, то программа завершается
+rescue Errno::ENOENT => e
+  puts "не удалось загрузить картинку :("
+  abort e.message
 end
 
+# запрос на вывод последних твитов из ленты
 if options.key?(:twit)
   puts "Постим твит: #{options[:twit].encode("UTF-8")}"
   client.update(options[:twit].encode("UTF-8"))
@@ -51,40 +64,43 @@ if options.key?(:twit)
 end
 
 begin
-if options.key?(:timeline)
-  puts "Сколько твитов показать?"
-  num = STDIN.gets.chomp unless num.is_a? Numeric
-  puts "Лента юзера: #{options[:timeline]}"
+  if options.key?(:timeline)
+    puts "Сколько твитов показать?"
+    num = STDIN.gets.chomp unless num.is_a? Numeric
+    puts "Лента юзера: #{options[:timeline]}"
 
-  opts = {count: num.to_i, include_rts: true}
+    opts = {count: num.to_i, include_rts: true}
 
-  twits = client.user_timeline(options[:timeline], opts)
+    twits = client.user_timeline(options[:timeline], opts)
 
-  twits.each do |twit|
-    puts twit.text
-    puts "by @#{twit.user.screen_name}, #{twit.created_at}"
-    puts "-"*40
+    twits.each do |twit|
+      puts twit.text
+      puts "by @#{twit.user.screen_name}, #{twit.created_at}"
+      puts "-"*40
+    end
+  else
+    puts "Сколько твитов показать?"
+
+    num = STDIN.gets.chomp.to_i
+
+    puts "Моя лента:"
+
+    twits = client.home_timeline({count: num.to_i})
+
+    twits.each do |twit|
+      puts twit.text
+      puts "by @#{twit.user.screen_name}, #{twit.created_at}"
+      puts "-"*40
+    end
   end
-else
-  puts "Сколько твитов показать?"
 
-  num = STDIN.gets.chomp.to_i
-
-  puts "Моя лента:"
-
-  twits = client.home_timeline({count: num.to_i})
-
-  twits.each do |twit|
-    puts twit.text
-    puts "by @#{twit.user.screen_name}, #{twit.created_at}"
-    puts "-"*40
-  end
-end
+  # обработка ошибок, если не верный ключ
 rescue Twitter::Error::Unauthorized => e
   abort e.message
 rescue Twitter::Error::BadRequest => e
   abort e.message
+    # обработка ошибки сети
 rescue Twitter::Error => e
   puts "Упс :( ошибка сети"
   abort e.message
-  end
+end
